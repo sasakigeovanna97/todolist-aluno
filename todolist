@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>To Do List Pro - Geovanna</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: rgba(255,255,255,0.7);
+      --text: #1c1c1e;
+      --sub: #8e8e93;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1e;
+        --card: rgba(28,28,30,0.7);
+        --text: #ffffff;
+        --sub: #8e8e93;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: 0.3s;
+    }
+
+    .app {
+      width: 380px;
+      padding: 25px;
+      border-radius: 25px;
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(0,0,0,0.05);
+      color: var(--text);
+      outline: none;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add {
+      background: #007aff;
+      color: white;
+    }
+
+    .add:hover {
+      background: #0063cc;
+    }
+
+    .filters {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .filters button {
+      flex: 1;
+      margin: 0 3px;
+      background: rgba(0,0,0,0.05);
+      color: var(--text);
+    }
+
+    .filters button.active {
+      background: #007aff;
+      color: white;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    li {
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 12px 15px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      li {
+        background: rgba(44,44,46,0.9);
+        color: white;
+      }
+    }
+
+    .done {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .check {
+      background: #34c759;
+      color: white;
+    }
+
+    .delete {
+      background: #ff3b30;
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <h1>Minhas Tarefas</h1>
+
+  <div class="input-group">
+    <input type="text" id="taskInput" placeholder="Adicionar tarefa">
+    <button class="add" onclick="addTask()">+</button>
+  </div>
+
+  <div class="filters">
+    <button onclick="setFilter('all')" class="active">Todas</button>
+    <button onclick="setFilter('active')">Pendentes</button>
+    <button onclick="setFilter('done')">Concluídas</button>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  let filter = "all";
+
+  function save() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function render() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    tasks
+      .filter(t => {
+        if (filter === "active") return !t.done;
+        if (filter === "done") return t.done;
+        return true;
+      })
+      .forEach((task, index) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <span class="${task.done ? 'done' : ''}">${task.text}</span>
+          <div class="actions">
+            <button class="check" onclick="toggle(${index})">✓</button>
+            <button class="delete" onclick="remove(${index})">✕</button>
+          </div>
+        `;
+
+        list.appendChild(li);
+      });
+  }
+
+  function addTask() {
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    tasks.push({ text, done: false });
+    input.value = "";
+
+    save();
+    render();
+  }
+
+  function toggle(index) {
+    tasks[index].done = !tasks[index].done;
+    save();
+    render();
+  }
+
+  function remove(index) {
+    tasks.splice(index, 1);
+    save();
+    render();
+  }
+
+  function setFilter(f) {
+    filter = f;
+
+    document.querySelectorAll(".filters button").forEach(btn => {
+      btn.classList.remove("active");
+    });
+
+    event.target.classList.add("active");
+    render();
+  }
+
+  render();
+</script>
+
+</body>
+</html>
